@@ -149,6 +149,7 @@ class DeleteConnectionNode extends SimpleNode {
   @override
   onInvoke(Map<String, dynamic> params) {
     link.provider.removeNode(new Path(path).parentPath);
+    link.save();
     return {};
   }
 }
