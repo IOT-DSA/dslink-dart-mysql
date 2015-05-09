@@ -159,12 +159,16 @@ class QueryNode extends SimpleNode {
 
   @override
   onInvoke(Map<String, dynamic> params) async {
-    var query = params["query"];
-    Results results = await getConnectionPool(this).query(query);
-    return {
-      "affected": results.affectedRows,
-      "insertId": results.insertId
-    };
+    try {
+      var query = params["query"];
+      Results results = await getConnectionPool(this).query(query);
+      return {
+        "affected": results.affectedRows,
+        "insertId": results.insertId
+      };
+    } catch (e) {
+      return {};
+    }
   }
 }
 
@@ -177,16 +181,20 @@ class QueryDataNode extends SimpleNode {
     r.columns = ["name"];
     var query = params["query"];
     new Future(() async {
-      Results results = await getConnectionPool(this).query(query);
-      r.columns = await results.fields.map((it) => {
-        "name": it.name,
-        "type": "dynamic"
-      }).toList();
-      results.listen((Row row) {
-        r.update([row.toList()]);
-      }).onDone(() {
+      try {
+        Results results = await getConnectionPool(this).query(query);
+        r.columns = await results.fields.map((it) => {
+          "name": it.name,
+          "type": "dynamic"
+        }).toList();
+        results.listen((Row row) {
+          r.update([row.toList()]);
+        }).onDone(() {
+          r.close();
+        });
+      } catch (e) {
         r.close();
-      });
+      }
     });
     return r;
   }
