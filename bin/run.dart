@@ -1,9 +1,7 @@
 import "dart:async";
 
 import "package:sqljocky/sqljocky.dart";
-import "package:dslink/client.dart";
-import "package:dslink/responder.dart";
-import "package:dslink/common.dart";
+import "package:dslink/dslink.dart";
 
 LinkProvider link;
 
@@ -63,7 +61,7 @@ class CreateConnectionNode extends SimpleNode {
 
   @override
   onInvoke(Map<String, dynamic> params) async {
-    link.provider.addNode("/${params["name"]}", {
+    link.addNode("/${params["name"]}", {
       r"$is": "connection",
       r"$mysql_host": params["host"],
       r"$mysql_port": params["port"],
@@ -148,7 +146,7 @@ class DeleteConnectionNode extends SimpleNode {
 
   @override
   onInvoke(Map<String, dynamic> params) {
-    link.provider.removeNode(new Path(path).parentPath);
+    link.removeNode(new Path(path).parentPath);
     link.save();
     return {};
   }
