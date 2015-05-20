@@ -1,5 +1,5 @@
 {
-  "name": "mysql",
+  "name": "dslink-dart-mysql",
   "version": "1.0.0",
   "description": "MySQL DSLink",
   "main": "bin/run.dart",
