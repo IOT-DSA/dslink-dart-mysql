@@ -2,58 +2,106 @@ import "dart:async";
 
 import "package:sqljocky/sqljocky.dart";
 import "package:dslink/dslink.dart";
+import "package:dslink/nodes.dart";
 
 LinkProvider link;
 
 main(List<String> args) async {
   link = new LinkProvider(
-    args,
-    "MySQL-",
-    defaultNodes: {
-      "Create_Connection": {
-        r"$is": "createConnection",
-        r"$invokable": "write",
-        r"$params": [
-          {
-            "name": "name",
-            "type": "string"
-          },
-          {
-            "name": "host",
-            "type": "string"
-          },
-          {
-            "name": "port",
-            "type": "number",
-            "default": 3306
-          },
-          {
-            "name": "user",
-            "type": "string",
-            "default": "root"
-          },
-          {
-            "name": "password",
-            "type": "string"
-          },
-          {
-            "name": "db",
-            "type": "string"
+      args,
+      "MySQL-",
+      defaultNodes: {
+        "Create_Connection": {
+          r"$name": "Create Connection",
+          r"$is": "createConnection",
+          r"$invokable": "write",
+          r"$params": [
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "host",
+              "type": "string"
+            },
+            {
+              "name": "port",
+              "type": "number",
+              "default": 3306
+            },
+            {
+              "name": "user",
+              "type": "string",
+              "default": "root"
+            },
+            {
+              "name": "password",
+              "type": "string"
+            },
+            {
+              "name": "db",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      profiles: {
+        "connection": (String path) => new ConnectionNode(path),
+        "queryData": (String path) => new SimpleActionNode(path, (Map<String, dynamic> params) {
+          var r = new AsyncTableResult();
+          r.columns = ["name"];
+          var query = params["query"];
+          new Future(() async {
+            try {
+              Results results = await getConnectionPool(path).query(query);
+              r.columns = await results.fields.map((it) => {
+                "name": it.name,
+                "type": "dynamic"
+              }).toList();
+              results.listen((Row row) {
+                r.update([row.toList()]);
+              }, onDone: () {
+                r.close();
+              }, onError: (e) {
+                r.close();
+              });
+            } catch (e) {
+              r.close();
+            }
+          });
+          return r;
+        }),
+        "execute": (String path) => new SimpleActionNode(path, (Map<String, dynamic> params) async {
+          try {
+            var query = params["query"];
+            Results results = await getConnectionPool(path).query(query);
+            return {
+              "affected": results.affectedRows,
+              "insertId": results.insertId
+            };
+          } catch (e) {
+            return {};
           }
-        ]
-      }
-    },
-    profiles: {
-      "connection": (String path) => new ConnectionNode(path),
-      "queryData": (String path) => new QueryDataNode(path),
-      "query": (String path) => new QueryNode(path),
-      "deleteConnection": (String path) => new DeleteConnectionNode(path),
-      "createConnection": (String path) => new CreateConnectionNode(path)
-    }
+        }),
+        "listTables": (String path) => new SimpleActionNode(path, (Map<String, dynamic> params) async {
+          try {
+            Results results = await getConnectionPool(path).query("SHOW TABLES");
+            return results.expand((x) => x).map((x) => {
+              "name": x
+            }).toList();
+          } catch (e) {
+            return [];
+          }
+        }),
+        "deleteConnection": (String path) => new DeleteConnectionNode(path),
+        "createConnection": (String path) => new CreateConnectionNode(path)
+      },
+      autoInitialize: false
   );
 
-  link.save();
+  link.init();
   link.connect();
+  link.save();
 }
 
 class CreateConnectionNode extends SimpleNode {
@@ -67,55 +115,7 @@ class CreateConnectionNode extends SimpleNode {
       r"$mysql_port": params["port"],
       r"$$mysql_user": params["user"],
       r"$$mysql_password": params["password"],
-      r"$mysql_db": params["db"],
-      "Delete_Connection": {
-        r"$name": "Delete Connection",
-        r"$is": "deleteConnection",
-        r"$invokable": "write",
-        r"$result": "values",
-        r"$params": [],
-        r"$columns": []
-      },
-      "Query_Data": {
-        r"$name": "Query Data",
-        r"$is": "queryData",
-        r"$invokable": "write",
-        r"$result": "table",
-        r"$params": [
-          {
-            "name": "query",
-            "type": "string"
-          }
-        ],
-        r"$columns": [
-          {
-            "name": "output",
-            "type": "tabledata"
-          }
-        ]
-      },
-      "Query": {
-        r"$name": "Query",
-        r"$is": "query",
-        r"$invokable": "write",
-        r"$result": "values",
-        r"$params": [
-          {
-            "name": "query",
-            "type": "string"
-          }
-        ],
-        r"$columns": [
-          {
-            "name": "affected",
-            "type": "integer"
-          },
-          {
-            "name": "insertId",
-            "type": "integer"
-          }
-        ]
-      }
+      r"$mysql_db": params["db"]
     });
 
     link.save();
@@ -135,9 +135,75 @@ class ConnectionNode extends SimpleNode {
     var password = get(r"$$mysql_password");
     var db = get(r"$mysql_db");
 
-    print("Connect to ${host}:${port}/${db} using ${user}:${password}");
-
     pools[path.split("/")[1]] = new ConnectionPool(host: host, user: user, port: port, db: db, password: password);
+
+    var x = {
+      "Query_Data": {
+        r"$name": "Query Data",
+        r"$is": "queryData",
+        r"$invokable": "write",
+        r"$result": "table",
+        r"$params": [
+          {
+            "name": "query",
+            "type": "string"
+          }
+        ],
+        r"$columns": [
+          {
+            "name": "output",
+            "type": "tabledata"
+          }
+        ]
+      },
+      "Execute": {
+        r"$name": "Execute",
+        r"$is": "execute",
+        r"$invokable": "write",
+        r"$result": "values",
+        r"$params": [
+          {
+            "name": "query",
+            "type": "string"
+          }
+        ],
+        r"$columns": [
+          {
+            "name": "affected",
+            "type": "integer"
+          },
+          {
+            "name": "insertId",
+            "type": "integer"
+          }
+        ]
+      },
+      "List_Tables": {
+        r"$name": "List Tables",
+        r"$result": "table",
+        r"$is": "listTables",
+        r"$invokable": "write",
+        r"$columns": [
+          {
+            "name": "name",
+            "type": "string"
+          }
+        ]
+      },
+      "Delete_Connection": {
+        r"$name": "Delete Connection",
+        r"$is": "deleteConnection",
+        r"$invokable": "write",
+        r"$result": "values",
+        r"$params": [],
+        r"$columns": []
+      }
+    };
+
+    for (var a in x.keys) {
+      link.removeNode("${path}/${a}");
+      link.addNode("${path}/${a}", x[a]);
+    }
   }
 }
 
@@ -152,54 +218,8 @@ class DeleteConnectionNode extends SimpleNode {
   }
 }
 
-class QueryNode extends SimpleNode {
-  QueryNode(String path) : super(path);
-
-  @override
-  onInvoke(Map<String, dynamic> params) async {
-    try {
-      var query = params["query"];
-      Results results = await getConnectionPool(this).query(query);
-      return {
-        "affected": results.affectedRows,
-        "insertId": results.insertId
-      };
-    } catch (e) {
-      return {};
-    }
-  }
-}
-
-class QueryDataNode extends SimpleNode {
-  QueryDataNode(String path) : super(path);
-
-  @override
-  onInvoke(Map<String, dynamic> params) {
-    var r = new AsyncTableResult();
-    r.columns = ["name"];
-    var query = params["query"];
-    new Future(() async {
-      try {
-        Results results = await getConnectionPool(this).query(query);
-        r.columns = await results.fields.map((it) => {
-          "name": it.name,
-          "type": "dynamic"
-        }).toList();
-        results.listen((Row row) {
-          r.update([row.toList()]);
-        }).onDone(() {
-          r.close();
-        });
-      } catch (e) {
-        r.close();
-      }
-    });
-    return r;
-  }
-}
-
-ConnectionPool getConnectionPool(SimpleNode node) {
-  var n = node.path.split("/")[1];
+ConnectionPool getConnectionPool(String path) {
+  var n = path.split("/")[1];
   return pools[n];
 }
 
