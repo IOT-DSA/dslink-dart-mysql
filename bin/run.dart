@@ -94,7 +94,59 @@ main(List<String> args) async {
           }
         }),
         "deleteConnection": (String path) => new DeleteConnectionNode(path),
-        "createConnection": (String path) => new CreateConnectionNode(path)
+        "createConnection": (String path) => new CreateConnectionNode(path),
+        "editConnection": (String path) => new SimpleActionNode(path, (Map<String, dynamic> params) async {
+          var name = params["name"];
+          var oldName = path.split("/")[1];
+          ConnectionNode conn = link["/${oldName}"];
+          if (name != null && name != oldName) {
+            if ((link.provider as SimpleNodeProvider).nodes.containsKey("/${name}")) {
+              return {
+                "success": false,
+                "message": "Connection '${name}' already exists."
+              };
+            } else {
+              var n = conn.serialize(false);
+              link.removeNode("/${oldName}");
+              link.addNode("/${name}", n);
+              (link.provider as SimpleNodeProvider).nodes.remove("/${oldName}");
+              conn = link["/${name}"];
+            }
+          }
+
+          link.save();
+
+          for (var field in ["host", "port", "user", "password", "db"]) {
+            var val = params[field];
+            var nn = "\$mysql_${field}";
+            var old = params[nn];
+
+            if (nn == null) {
+              nn = "\$\$mysql_${field}";
+              old = params[nn];
+            }
+
+            if (val != null && old != val) {
+              conn.configs[nn] = val;
+            }
+          }
+
+          try {
+            await conn.setup();
+          } catch (e) {
+            return {
+              "success": false,
+              "message": "Failed to connect to database: ${e}"
+            };
+          }
+
+          link.save();
+
+          return {
+            "success": true,
+            "message": "Success!"
+          };
+        })
       },
       autoInitialize: false
   );
@@ -129,13 +181,29 @@ class ConnectionNode extends SimpleNode {
 
   @override
   void onCreated() {
+    setup();
+  }
+
+  setup() async {
+    var name = new Path(path).name;
+
     var host = get(r"$mysql_host");
     var port = get(r"$mysql_port");
     var user = get(r"$$mysql_user");
     var password = get(r"$$mysql_password");
     var db = get(r"$mysql_db");
 
-    pools[path.split("/")[1]] = new ConnectionPool(host: host, user: user, port: port, db: db, password: password);
+    var pool = new ConnectionPool(host: host, user: user, port: port, db: db, password: password);
+
+    RetainedConnection rc = await pool.getConnection();
+    await rc.release();
+
+    if (pools.containsKey(name)) {
+      pools[name].close();
+      pools.remove(name);
+    }
+
+    pools[name] = pool;
 
     var x = {
       "Query_Data": {
@@ -186,6 +254,54 @@ class ConnectionNode extends SimpleNode {
         r"$columns": [
           {
             "name": "name",
+            "type": "string"
+          }
+        ]
+      },
+      "Edit_Connection": {
+        r"$name": "Edit Connection",
+        r"$is": "editConnection",
+        r"$invokable": "write",
+        r"$result": "values",
+        r"$params": [
+          {
+            "name": "name",
+            "type": "string",
+            "default": name
+          },
+          {
+            "name": "host",
+            "type": "string",
+            "default": host
+          },
+          {
+            "name": "port",
+            "type": "number",
+            "default": port
+          },
+          {
+            "name": "user",
+            "type": "string",
+            "default": user
+          },
+          {
+            "name": "password",
+            "type": "string",
+            "default": password
+          },
+          {
+            "name": "db",
+            "type": "string",
+            "default": db
+          }
+        ],
+        r"$columns": [
+          {
+            "name": "success",
+            "type": "bool"
+          },
+          {
+            "name": "message",
             "type": "string"
           }
         ]
