@@ -66,11 +66,31 @@ main(List<String> args) async {
                 }
                 r.close();
               }, onError: (e) {
-                r.update([]);
+                r.columns = [
+                  {
+                    "name": "error",
+                    "type": "string"
+                  }
+                ];
+                r.update([
+                  {
+                    "error": e.toString()
+                  }
+                ]);
                 r.close();
               });
             } catch (e) {
-              r.update([]);
+              r.columns = [
+                {
+                  "name": "error",
+                  "type": "string"
+                }
+              ];
+              r.update([
+                {
+                  "error": e.toString()
+                }
+              ]);
               r.close();
             }
           });
