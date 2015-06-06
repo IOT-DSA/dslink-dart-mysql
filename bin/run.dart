@@ -61,11 +61,16 @@ main(List<String> args) async {
               results.listen((Row row) {
                 r.update([row.toList()]);
               }, onDone: () {
+                if (r.rows == null || r.rows.isEmpty) {
+                  r.update([]);
+                }
                 r.close();
               }, onError: (e) {
+                r.update([]);
                 r.close();
               });
             } catch (e) {
+              r.update([]);
               r.close();
             }
           });
