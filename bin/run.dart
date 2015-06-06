@@ -22,7 +22,8 @@ main(List<String> args) async {
             },
             {
               "name": "host",
-              "type": "string"
+              "type": "string",
+              "default": "localhost"
             },
             {
               "name": "port",
@@ -186,15 +187,27 @@ class CreateConnectionNode extends SimpleNode {
 
   @override
   onInvoke(Map<String, dynamic> params) async {
-    link.addNode("/${params["name"]}", {
-      r"$is": "connection",
-      r"$mysql_host": params["host"],
-      r"$mysql_port": params["port"],
-      r"$$mysql_user": params["user"],
-      r"$$mysql_password": params["password"],
-      r"$mysql_db": params["db"]
-    });
+    var name = params["name"];
 
+    var host = params["host"];
+    var port = params["port"];
+    var user = params["user"];
+    var password = params["password"];
+    var db = params["db"];
+
+    var m = {
+      r"$is": "connection",
+      r"$mysql_host": host,
+      r"$mysql_port": port,
+      r"$$mysql_user": user,
+      r"$$mysql_password": password
+    };
+
+    if (db != null) {
+      m[r"$mysql_db"] = db;
+    }
+
+    link.addNode("/${name}", m);
     link.save();
 
     return {};
