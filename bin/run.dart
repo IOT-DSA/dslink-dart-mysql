@@ -18,30 +18,42 @@ main(List<String> args) async {
           r"$params": [
             {
               "name": "name",
-              "type": "string"
+              "type": "string",
+              "description": "Connection Name",
+              "placeholder": "mydb"
             },
             {
               "name": "host",
               "type": "string",
-              "default": "localhost"
+              "default": "localhost",
+              "description": "Server Host",
+              "placeholder": "localhost"
             },
             {
               "name": "port",
               "type": "number",
-              "default": 3306
+              "default": 3306,
+              "description": "Server Port",
+              "placeholder": "3306"
             },
             {
               "name": "user",
               "type": "string",
-              "default": "root"
+              "default": "root",
+              "description": "User",
+              "placeholder": "root"
             },
             {
               "name": "password",
-              "type": "string"
+              "type": "string",
+              "description": "User Password (Optional)",
+              "placeholder": "!MyPassword!"
             },
             {
               "name": "db",
-              "type": "string"
+              "type": "string",
+              "description": "Database Name",
+              "placeholder": "mydb"
             }
           ]
         }
@@ -106,7 +118,9 @@ main(List<String> args) async {
               "insertId": results.insertId
             };
           } catch (e) {
-            return {};
+            return {
+              "error": e.toString()
+            };
           }
         }),
         "listTables": (String path) => new SimpleActionNode(path, (Map<String, dynamic> params) async {
@@ -233,8 +247,11 @@ class ConnectionNode extends SimpleNode {
 
     var pool = new ConnectionPool(host: host, user: user, port: port, db: db, password: password);
 
-    RetainedConnection rc = await pool.getConnection();
-    await rc.release();
+    try {
+      RetainedConnection rc = await pool.getConnection();
+      await rc.release();
+    } catch (e) {
+    }
 
     if (pools.containsKey(name)) {
       pools[name].close();
@@ -252,7 +269,9 @@ class ConnectionNode extends SimpleNode {
         r"$params": [
           {
             "name": "query",
-            "type": "string"
+            "type": "string",
+            "description": "Database Query",
+            "placeholder": "SHOW TABLES"
           }
         ],
         r"$columns": [
@@ -270,7 +289,9 @@ class ConnectionNode extends SimpleNode {
         r"$params": [
           {
             "name": "query",
-            "type": "string"
+            "type": "string",
+            "description": "Database Query",
+            "placeholder": "INSERT INTO table_name (column1,column2) VALUES (value1,value2);"
           }
         ],
         r"$columns": [
@@ -281,6 +302,10 @@ class ConnectionNode extends SimpleNode {
           {
             "name": "insertId",
             "type": "integer"
+          },
+          {
+            "name": "error",
+            "type": "string"
           }
         ]
       },
