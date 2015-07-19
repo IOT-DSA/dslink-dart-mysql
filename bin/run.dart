@@ -122,7 +122,7 @@ main(List<String> args) async {
               "error": e.toString()
             };
           }
-        }),
+        }, link.provider),
         "listTables": (String path) => new SimpleActionNode(path, (Map<String, dynamic> params) async {
           try {
             Results results = await getConnectionPool(path).query("SHOW TABLES");
@@ -132,7 +132,7 @@ main(List<String> args) async {
           } catch (e) {
             return [];
           }
-        }),
+        }, link.provider),
         "deleteConnection": (String path) => new DeleteConnectionNode(path),
         "createConnection": (String path) => new CreateConnectionNode(path),
         "editConnection": (String path) => new SimpleActionNode(path, (Map<String, dynamic> params) async {
@@ -156,19 +156,30 @@ main(List<String> args) async {
 
           link.save();
 
+          var mmm = [];
+
           for (var field in ["host", "port", "user", "password", "db"]) {
             var val = params[field];
             var nn = "\$mysql_${field}";
-            var old = params[nn];
+            var old = conn.configs[nn];
 
-            if (nn == null) {
+            if (old == null) {
               nn = "\$\$mysql_${field}";
-              old = params[nn];
+              old = conn.configs[nn];
             }
 
             if (val != null && old != val) {
               conn.configs[nn] = val;
+
+              mmm.add(nn);
             }
+          }
+
+          if (mmm.length == 1 && mmm.first == r"$mysql_db") {
+            var pool = getConnectionPool(conn.path);
+            var c = await pool.getConnection();
+            var db = params["db"];
+            await c.query("USE ${db}");
           }
 
           try {
@@ -186,7 +197,7 @@ main(List<String> args) async {
             "success": true,
             "message": "Success!"
           };
-        })
+        }, link.provider)
       },
       autoInitialize: false
   );
@@ -197,7 +208,7 @@ main(List<String> args) async {
 }
 
 class CreateConnectionNode extends SimpleNode {
-  CreateConnectionNode(String path) : super(path);
+  CreateConnectionNode(String path) : super(path, link.provider);
 
   @override
   onInvoke(Map<String, dynamic> params) async {
@@ -229,7 +240,7 @@ class CreateConnectionNode extends SimpleNode {
 }
 
 class ConnectionNode extends SimpleNode {
-  ConnectionNode(String path) : super(path);
+  ConnectionNode(String path) : super(path, link.provider);
 
   @override
   void onCreated() {
@@ -265,7 +276,7 @@ class ConnectionNode extends SimpleNode {
         r"$name": "Query Data",
         r"$is": "queryData",
         r"$invokable": "write",
-        r"$result": "table",
+        r"$result": "stream",
         r"$params": [
           {
             "name": "query",
@@ -387,7 +398,7 @@ class ConnectionNode extends SimpleNode {
 }
 
 class DeleteConnectionNode extends SimpleNode {
-  DeleteConnectionNode(String path) : super(path);
+  DeleteConnectionNode(String path) : super(path, link.provider);
 
   @override
   onInvoke(Map<String, dynamic> params) {
