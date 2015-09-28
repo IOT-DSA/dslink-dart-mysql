@@ -47,7 +47,8 @@ main(List<String> args) async {
               "name": "password",
               "type": "string",
               "description": "User Password (Optional)",
-              "placeholder": "!MyPassword!"
+              "placeholder": "!MyPassword!",
+              "editor": "password"
             },
             {
               "name": "db",
@@ -72,7 +73,15 @@ main(List<String> args) async {
                 "type": "dynamic"
               }).toList();
               results.listen((Row row) {
-                r.update([row.toList()]);
+                var out = [];
+                for (var x in row) {
+                  if (x is Blob) {
+                    out.add(x.toString());
+                  } else {
+                    out.add(x);
+                  }
+                }
+                r.update([out]);
               }, onDone: () {
                 if (r.rows == null || r.rows.isEmpty) {
                   r.update([]);
@@ -265,7 +274,7 @@ class ConnectionNode extends SimpleNode {
     }
 
     if (pools.containsKey(name)) {
-      pools[name].close();
+      pools[name].closeConnectionsNow();
       pools.remove(name);
     }
 
@@ -361,7 +370,8 @@ class ConnectionNode extends SimpleNode {
           {
             "name": "password",
             "type": "string",
-            "default": password
+            "default": password,
+            "editor": "password"
           },
           {
             "name": "db",
