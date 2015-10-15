@@ -16,6 +16,9 @@
     "name": {
       "type": "string",
       "default": "MySQL"
+    },
+    "token": {
+      "type": "string"
     }
   }
 }
