@@ -75,7 +75,7 @@ main(List<String> args) async {
               results.listen((Row row) {
                 var out = [];
                 for (var x in row) {
-                  if (x is Blob) {
+                  if (x is Blob || x is DateTime) {
                     out.add(x.toString());
                   } else {
                     out.add(x);
