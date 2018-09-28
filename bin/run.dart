@@ -55,6 +55,11 @@ main(List<String> args) async {
               "type": "string",
               "description": "Database Name",
               "placeholder": "mydb"
+            },
+            {
+              "name": "useSSL",
+              "type": "boolean",
+              "default": false
             }
           ]
         }
