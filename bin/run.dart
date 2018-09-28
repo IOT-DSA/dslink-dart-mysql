@@ -58,7 +58,7 @@ main(List<String> args) async {
             },
             {
               "name": "useSSL",
-              "type": "boolean",
+              "type": "bool",
               "default": false
             }
           ]
@@ -388,7 +388,7 @@ class ConnectionNode extends SimpleNode {
           },
           {
             "name": "useSSL",
-            "type": "boolean",
+            "type": "bool",
             "default": false
           }
         ],
