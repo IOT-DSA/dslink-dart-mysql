@@ -1,6 +1,6 @@
 {
   "name": "dslink-dart-mysql",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MySQL DSLink",
   "main": "bin/run.dart",
   "engines": {
