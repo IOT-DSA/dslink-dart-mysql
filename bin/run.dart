@@ -228,7 +228,7 @@ class CreateConnectionNode extends SimpleNode {
     var user = params["user"];
     var password = params["password"];
     var db = params["db"];
-    var useSSL = params["ssl"];
+    var useSSL = params["useSSL"];
 
     var m = {
       r"$is": "connection",
