@@ -228,13 +228,15 @@ class CreateConnectionNode extends SimpleNode {
     var user = params["user"];
     var password = params["password"];
     var db = params["db"];
+    var useSSL = params["ssl"];
 
     var m = {
       r"$is": "connection",
       r"$mysql_host": host,
       r"$mysql_port": port,
       r"$$mysql_user": user,
-      r"$$mysql_password": password
+      r"$$mysql_password": password,
+      r"$mysql_ssl": useSSL
     };
 
     if (db != null) {
@@ -264,8 +266,9 @@ class ConnectionNode extends SimpleNode {
     var user = get(r"$$mysql_user");
     var password = get(r"$$mysql_password");
     var db = get(r"$mysql_db");
+    var useSSL = get(r"$mysql_ssl");
 
-    var pool = new ConnectionPool(host: host, user: user, port: port, db: db, password: password);
+    var pool = new ConnectionPool(host: host, user: user, port: port, db: db, password: password, useSSL: useSSL);
 
     try {
       RetainedConnection rc = await pool.getConnection();
@@ -377,6 +380,11 @@ class ConnectionNode extends SimpleNode {
             "name": "db",
             "type": "string",
             "default": db
+          },
+          {
+            "name": "useSSL",
+            "type": "boolean",
+            "default": false
           }
         ],
         r"$columns": [
