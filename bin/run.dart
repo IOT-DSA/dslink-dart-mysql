@@ -59,7 +59,8 @@ main(List<String> args) async {
             {
               "name": "useSSL",
               "type": "bool",
-              "default": false
+              "default": false,
+              "description": "Require SSL"
             }
           ]
         }
@@ -172,7 +173,7 @@ main(List<String> args) async {
 
           var mmm = [];
 
-          for (var field in ["host", "port", "user", "password", "db"]) {
+          for (var field in ["host", "port", "user", "password", "db", "useSSL"]) {
             var val = params[field];
             var nn = "\$mysql_${field}";
             var old = conn.configs[nn];
@@ -241,7 +242,7 @@ class CreateConnectionNode extends SimpleNode {
       r"$mysql_port": port,
       r"$$mysql_user": user,
       r"$$mysql_password": password,
-      r"$mysql_ssl": useSSL
+      r"$$mysql_ssl": useSSL
     };
 
     if (db != null) {
@@ -271,7 +272,7 @@ class ConnectionNode extends SimpleNode {
     var user = get(r"$$mysql_user");
     var password = get(r"$$mysql_password");
     var db = get(r"$mysql_db");
-    var useSSL = get(r"$mysql_ssl");
+    var useSSL = get(r"$$mysql_ssl");
 
     var pool = new ConnectionPool(host: host, user: user, port: port, db: db, password: password, useSSL: useSSL);
 
