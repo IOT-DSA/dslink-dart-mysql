@@ -55,6 +55,12 @@ main(List<String> args) async {
               "type": "string",
               "description": "Database Name",
               "placeholder": "mydb"
+            },
+            {
+              "name": "useSSL",
+              "type": "bool",
+              "default": false,
+              "description": "Require SSL"
             }
           ]
         }
@@ -167,7 +173,7 @@ main(List<String> args) async {
 
           var mmm = [];
 
-          for (var field in ["host", "port", "user", "password", "db"]) {
+          for (var field in ["host", "port", "user", "password", "db", "useSSL"]) {
             var val = params[field];
             var nn = "\$mysql_${field}";
             var old = conn.configs[nn];
@@ -228,13 +234,15 @@ class CreateConnectionNode extends SimpleNode {
     var user = params["user"];
     var password = params["password"];
     var db = params["db"];
+    var useSSL = params["useSSL"];
 
     var m = {
       r"$is": "connection",
       r"$mysql_host": host,
       r"$mysql_port": port,
       r"$$mysql_user": user,
-      r"$$mysql_password": password
+      r"$$mysql_password": password,
+      r"$$mysql_ssl": useSSL
     };
 
     if (db != null) {
@@ -264,8 +272,9 @@ class ConnectionNode extends SimpleNode {
     var user = get(r"$$mysql_user");
     var password = get(r"$$mysql_password");
     var db = get(r"$mysql_db");
+    var useSSL = get(r"$$mysql_ssl");
 
-    var pool = new ConnectionPool(host: host, user: user, port: port, db: db, password: password);
+    var pool = new ConnectionPool(host: host, user: user, port: port, db: db, password: password, useSSL: useSSL);
 
     try {
       RetainedConnection rc = await pool.getConnection();
@@ -377,6 +386,11 @@ class ConnectionNode extends SimpleNode {
             "name": "db",
             "type": "string",
             "default": db
+          },
+          {
+            "name": "useSSL",
+            "type": "bool",
+            "default": false
           }
         ],
         r"$columns": [
