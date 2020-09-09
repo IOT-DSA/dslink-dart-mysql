@@ -78,3 +78,14 @@ Each connection node represents a MySQL server and a specific account to access 
 1. The resulting table with the rows from the database will be available under **output** parameter.
 
 <img src="https://github.com/IOT-DSA/docs/blob/master/images/external/mysql-example-query.png" width="1000" alt="Select Query">
+
+### Insert Record
+
+1. Create a new connection or use an existing one.
+1. Drag and drop **Execute** action to the dataflow.
+1. Add a **String** block to write an SQL INSERT query. You can also add query directly into **query** parameter of the **Execute** block. For example, _INSERT INTO users (NULL, 'Taylor Swift', 'taylorswift@gmail.com', 'Art')_
+1. Link **String** block to a **query** parameter.
+1. Trigger **Invoke** action.
+1. When query is executed you'll see the number of affected rows and new record ID.
+
+<img src="https://github.com/IOT-DSA/docs/blob/master/images/external/mysql-example-insert.png" width="800" alt="Insert Query">
