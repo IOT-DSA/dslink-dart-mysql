@@ -38,12 +38,12 @@ This is the root node of the link.  Use it to create connections to MySQL databa
 <img src="https://github.com/IOT-DSA/docs/blob/master/images/external/mysql-create-connection.png" width="400" alt="Create Connection">
 
 The parameters are:
-  - name - What to name the connection node in the tree.
-  - host - MySQL server host name or IP.
-  - port - MySQL server port. Default: 3306
-  - user - User account used to authenticate with the database server.
-  - password - Password for the user account.
-  - db - Database name to use by default.
+  - **name** - What to name the connection node in the tree.
+  - **host** - MySQL server host name or IP.
+  - **port** - MySQL server port. Default: 3306
+  - **user** - User account used to authenticate with the database server.
+  - **password** - Password for the user account.
+  - **db** - Database name to use by default.
 
 #### Child Nodes
 
@@ -56,13 +56,13 @@ Each connection node represents a MySQL server and a specific account to access 
 #### Actions
 
 1. Query Data - Sends custom query to read information from the database. The parameters are:
-    - query - SQL query string.
-    - output - resulting table with rows and columns requested.
+    - **query** - SQL query string.
+    - **output** - resulting table with rows and columns requested.
 1. Execute - Sends a custom query to add or update information in the database. The parameters are:
-    - query - SQL query with INSERT, UPDATE, DELETE request.
-    - affected - returns number of rows affected by the query.
-    - insertId - if the query is an INSERT statement, returns ID of the added record.
+    - **query** - SQL query with INSERT, UPDATE, DELETE request.
+    - **affected** - returns number of rows affected by the query.
+    - **insertId** - if the query is an INSERT statement, returns ID of the added record.
 1. List Tables - returns a list of all the tables in the database. The parameters are:
-    - output - the resulting table with the list of database tables.
+    - **output** - the resulting table with the list of database tables.
 1. Edit Connection - changes configuration for this connection node. The parameters are exactly the same as for **Create Connection** action above.
 1. Delete Connection - deletes current connection to the database.
