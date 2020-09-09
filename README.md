@@ -66,3 +66,15 @@ Each connection node represents a MySQL server and a specific account to access 
     - **output** - the resulting table with the list of database tables.
 1. Edit Connection - changes configuration for this connection node. The parameters are exactly the same as for **Create Connection** action above.
 1. Delete Connection - deletes current connection to the database.
+
+## Examples
+
+### Query a Table
+
+1. Create a new connection to your database.
+1. Drag and drop **Query Data** action to the dataflow.
+1. In the block's **query** parameter enter your SQL SELECT statement. For example, _SELECT * FROM users_
+1. Trigger **Invoke** action on a block.
+1. The resulting table with the rows from the database will be available under **output** parameter.
+
+<img src="https://github.com/IOT-DSA/docs/blob/master/images/external/mysql-example-query.png" width="1000" alt="Select Query">
