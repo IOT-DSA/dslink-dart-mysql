@@ -1,7 +1,3 @@
-The action `Create_Connection` will create a connection to the specified database. You can then query data using the 
-actions provided on the connection node.
-
-
 # MySQL DSLink (dslink-dart-mysql)
 
 * Dart - version 1.17 and up.
