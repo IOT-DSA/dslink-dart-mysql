@@ -1,14 +1,12 @@
 {
   "name": "dslink-dart-mysql",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MySQL DSLink",
   "main": "bin/run.dart",
   "engines": {
-    "dart": ">=1.9.0"
+    "dart": ">=1.13.0"
   },
-  "getDependencies": [
-    "pub get"
-  ],
+  "getDependencies": [],
   "configs": {
     "broker": {
       "type": "url"
@@ -19,6 +17,10 @@
     },
     "token": {
       "type": "string"
+    },
+    "log": {
+      "type": "enum[info,off,warning,severe,fine,finer,finest,all]",
+      "default": "info"
     }
   }
 }
