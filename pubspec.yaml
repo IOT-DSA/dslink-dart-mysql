@@ -1,6 +1,8 @@
 name: dslink_mysql
+version: "1.0.1"
 description: MySQL for DSA
+environment:
+  sdk: ">=1.13.0 <2.0.0"
 dependencies:
-  dslink:
-    git: https://github.com/IOT-DSA/sdk-dslink-dart.git
+  dslink: "^1.0.6"
   sqljocky: ">=0.14.0 <0.19.0"
